@@ -27,8 +27,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 //import com.amap.api.location.AMapLocationClientOption;
 
-public class MainActivity extends AppCompatActivity //implements View.OnClickListener
-{
+public class MainActivity extends AppCompatActivity implements View.OnClickListener{
 
     private static final int WRITE_COARSE_LOCATION_REQUEST_CODE = 1;
 
@@ -51,24 +50,6 @@ public class MainActivity extends AppCompatActivity //implements View.OnClickLis
             if (amapLocation != null) {
                 if (amapLocation.getErrorCode() == 0) {
                     mTextView.setText("ok, get result");
-
-                    String location_result = null;
-                    location_result = String.format( "location type:%d,\nlatitude:%06f,\nlongitude:%06f, \n" +
-                                    "address:%s,\n StreetNumber:%s,\nAdCode:%s,\n" +
-                                    "AOIName:%s,\nBuildingId:%s,\nfloor:%s,\nGPSAccuracyStatus:%d",
-                            amapLocation.getLocationType(),
-                            amapLocation.getLatitude(),
-                            amapLocation.getLongitude(),
-                            amapLocation.getAddress(),
-                            amapLocation.getStreetNum(),
-                            amapLocation.getAdCode(),
-                            amapLocation.getAoiName(),
-                            amapLocation.getBuildingId(),
-                            amapLocation.getFloor(),
-                            amapLocation.getGpsAccuracyStatus()
-                    );
-                    mTextView.setText(location_result);
-
 
                     //解析定位结果
                     amapLocation.getLocationType();//获取当前定位结果来源，如网络定位结果，详见定位类型表
@@ -93,6 +74,25 @@ public class MainActivity extends AppCompatActivity //implements View.OnClickLis
                     Date date = new Date(amapLocation.getTime());
                     df.format(date);
 
+                    String location_result = null;
+                    location_result = String.format( "location type:%d,\nlatitude:%06f,\nlongitude:%06f, \n" +
+                                    "address:%s,\nStreetNumber:%s,\nAdCode:%s,\n" +
+                                    "AOIName:%s,\nBuildingId:%s,\nfloor:%s,\nGPSAccuracyStatus:%d,\ntime:%s",
+                            amapLocation.getLocationType(),
+                            amapLocation.getLatitude(),
+                            amapLocation.getLongitude(),
+                            amapLocation.getAddress(),
+                            amapLocation.getStreetNum(),
+                            amapLocation.getAdCode(),
+                            amapLocation.getAoiName(),
+                            amapLocation.getBuildingId(),
+                            amapLocation.getFloor(),
+                            amapLocation.getGpsAccuracyStatus(),
+                            df.format(date)
+                    );
+                    mTextView.setText(location_result);
+
+
                 }
                 //定位失败时，可通过ErrCode（错误码）信息来确定失败的原因，errInfo是错误信息，详见错误码表。
                 else {
@@ -104,7 +104,7 @@ public class MainActivity extends AppCompatActivity //implements View.OnClickLis
         }
     };
 
-    /*
+
     private static final String NOTIFICATION_CHANNEL_NAME = "BackgroundLocation";
     private NotificationManager notificationManager = null;
     boolean isCreateChannel = false;
@@ -164,35 +164,19 @@ public class MainActivity extends AppCompatActivity //implements View.OnClickLis
         start = findViewById(R.id.start_location);
         stop = findViewById(R.id.stop_location);
         mTextView = findViewById(R.id.location_result);
+        start.setOnClickListener(this);
+        stop.setOnClickListener(this);
 
-        start.setOnClickListener(new View.OnClickListener() {
+        /*start.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                //Toast.makeText(MainActivity.this, "start_location clicked", Toast.LENGTH_SHORT ).show();
-
-                //这里以ACCESS_COARSE_LOCATION为例
-                if (ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.ACCESS_COARSE_LOCATION )
-                        != PackageManager.PERMISSION_GRANTED) {
-                    Toast.makeText(MainActivity.this, "request permission", Toast.LENGTH_SHORT ).show();
-
-                    //申请WRITE_EXTERNAL_STORAGE权限
-                    ActivityCompat.requestPermissions(MainActivity.this, new String[]{Manifest.permission.ACCESS_COARSE_LOCATION},
-                          WRITE_COARSE_LOCATION_REQUEST_CODE);//自定义的code
-                } else {
-                    Toast.makeText(MainActivity.this, "started location", Toast.LENGTH_SHORT).show();
-                    //启动定位
-                    mLocationClient.startLocation();
-                    //异步获取定位结果
-                }
             }
         });
        stop.setOnClickListener(new View.OnClickListener() {
            @Override
            public void onClick(View v) {
-               Toast.makeText(MainActivity.this,  "stopped location", Toast.LENGTH_SHORT).show();
-               mLocationClient.stopLocation();//停止定位后，本地定位服务并不会被销毁
            }
-       });
+       });*/
 
 
         //初始化AMapLocationClientOption对象
@@ -216,7 +200,6 @@ public class MainActivity extends AppCompatActivity //implements View.OnClickLis
         //单位是毫秒，默认30000毫秒，建议超时时间不要低于8000毫秒。
         mLocationOption.setHttpTimeOut(20000);
 
-
         //关闭缓存机制
         //mLocationOption.setLocationCacheEnable(false);
 
@@ -231,30 +214,43 @@ public class MainActivity extends AppCompatActivity //implements View.OnClickLis
         mLocationClient.setLocationListener(mAMapLocationListener);
 
         //启动后台定位，第一个参数为通知栏ID，建议整个APP使用一个
-        //mLocationClient.enableBackgroundLocation(2001, buildNotification());
+        mLocationClient.enableBackgroundLocation(2001, buildNotification());
     }
     @Override
     public void onDestroy(){
         super.onDestroy();
 
         //关闭后台定位，参数为true时会移除通知栏，为false时不会移除通知栏，但是可以手动移除
-       // mLocationClient.disableBackgroundLocation(true);
+        mLocationClient.disableBackgroundLocation(true);
 
         mLocationClient.onDestroy();//销毁定位客户端，同时销毁本地定位服务。
         mLocationOption = null;
         mLocationClient = null;
     }
 
-  /* @Override
+   @Override
     public void onClick(View v){
-        if( v.getId()  == R.id.start_location ) {
-
+        if( v.getId() == R.id.start_location ) {
+            //这里以ACCESS_COARSE_LOCATION为例
+            if (ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.ACCESS_COARSE_LOCATION )
+                    != PackageManager.PERMISSION_GRANTED) {
+                Toast.makeText(MainActivity.this, "request permission", Toast.LENGTH_SHORT ).show();
+                //申请WRITE_EXTERNAL_STORAGE权限
+                ActivityCompat.requestPermissions(MainActivity.this, new String[]{Manifest.permission.ACCESS_COARSE_LOCATION},
+                        WRITE_COARSE_LOCATION_REQUEST_CODE);//自定义的code
+            } else {
+                Toast.makeText(MainActivity.this, "started location", Toast.LENGTH_SHORT).show();
+                //启动定位
+                mLocationClient.startLocation();
+                //异步获取定位结果
+            }
         }
         else if( v.getId() == R.id.stop_location ){
-
+            Toast.makeText(MainActivity.this,  "stopped location", Toast.LENGTH_SHORT).show();
+            mLocationClient.stopLocation();//停止定位后，本地定位服务并不会被销毁
         }
     }
-*/
+
 
     @Override
     public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
